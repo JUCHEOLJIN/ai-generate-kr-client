@@ -2,7 +2,7 @@ import type { AxiosRequestConfig } from 'axios'
 import axios from 'axios'
 import qs from 'qs'
 
-const FLASK_API_URL = ' http://127.0.0.1:5000'
+const FLASK_API_URL = 'https://ai-generate-kr.onrender.com'
 
 const axiosInstance = axios.create({
   baseURL: FLASK_API_URL,
