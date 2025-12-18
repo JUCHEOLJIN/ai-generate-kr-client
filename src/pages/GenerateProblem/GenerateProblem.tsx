@@ -39,15 +39,13 @@ const GenerateProblem = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-8 bg-white shadow-xl min-h-screen">
-      <h1 className="text-4xl font-extrabold text-indigo-700 text-center mb-4">
-        📚 국어 문제 생성
-      </h1>
+      <h1 className="text-4xl font-extrabold text-indigo-700 text-center mb-4">국어 문제 생성</h1>
       <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
         <label
           htmlFor="level-select"
           className="text-lg font-bold text-indigo-900 flex items-center gap-2"
         >
-          <span className="text-2xl">🎯</span> 출제 대상 학년
+          출제 대상 학년
         </label>
 
         <div className="relative w-full sm:w-48">
@@ -115,7 +113,7 @@ const GenerateProblem = () => {
       {/* 결과 표시 */}
       {problems.length > 0 && (
         <div className="mt-10 pt-6 border-t border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">✅ 생성된 문제</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">생성된 문제</h2>
           {problems.map((p, index) => (
             <ProblemCard key={index} problem={p} index={index} />
           ))}
