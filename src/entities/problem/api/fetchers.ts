@@ -15,3 +15,13 @@ export const generateProblems = async (request: GenerateProblemsRequest) => {
   const response = await http.post<GenerateProblemsResponse>('/generate', request)
   return response.problems
 }
+
+type DownloadDocumentRequest = {
+  problems: Problem[]
+  level: string
+}
+
+export const downloadDocument = async (request: DownloadDocumentRequest) => {
+  const blob = await http.download(`/download-docx`, request)
+  return blob
+}

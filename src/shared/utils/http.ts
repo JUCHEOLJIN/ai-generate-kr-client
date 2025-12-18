@@ -57,4 +57,11 @@ export const http = {
     })
     return response.data
   },
+
+  download: async (url: string, data?: AxiosRequestConfig['data']) => {
+    const response = await axiosInstance.post(url, data, {
+      responseType: 'blob',
+    })
+    return response.data as Blob
+  },
 }
