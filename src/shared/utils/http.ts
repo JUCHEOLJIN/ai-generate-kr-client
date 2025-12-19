@@ -3,6 +3,7 @@ import axios from 'axios'
 import qs from 'qs'
 
 const FLASK_API_URL = 'https://ai-generate-kr.onrender.com'
+// const FLASK_API_URL = 'http://127.0.0.1:5000'
 
 const axiosInstance = axios.create({
   baseURL: FLASK_API_URL,
@@ -63,5 +64,14 @@ export const http = {
       responseType: 'blob',
     })
     return response.data as Blob
+  },
+
+  uploadFile: async <T>(url: string, file: File, fieldName = 'file') => {
+    const formData = new FormData()
+    formData.append(fieldName, file)
+    const response = await axiosInstance.post<T>(url, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
   },
 }
