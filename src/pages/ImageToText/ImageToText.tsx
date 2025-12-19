@@ -67,11 +67,7 @@ const ImageToText = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-8 bg-white shadow-xl min-h-screen">
-      <h1 className="text-4xl font-extrabold text-indigo-700 text-center mb-8">
-        이미지 텍스트 추출
-      </h1>
-
+    <div className="max-w-5xl mx-auto p-8 bg-white shadow-xl min-h-[calc(100vh-69px)]">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 왼쪽: 이미지 업로드 영역 */}
         <div className="space-y-4">

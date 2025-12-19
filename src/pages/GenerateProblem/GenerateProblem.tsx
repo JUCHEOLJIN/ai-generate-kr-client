@@ -67,8 +67,7 @@ const GenerateProblem = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-white shadow-xl min-h-screen">
-      <h1 className="text-4xl font-extrabold text-indigo-700 text-center mb-4">국어 문제 생성</h1>
+    <div className="max-w-5xl mx-auto p-8 bg-white shadow-xl min-h-[calc(100vh-69px)]">
       <div className="flex gap-4 justify-between align-middle mb-8">
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <label
