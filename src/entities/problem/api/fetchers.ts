@@ -25,3 +25,13 @@ export const downloadDocument = async (request: DownloadDocumentRequest) => {
   const blob = await http.download(`/download-docx`, request)
   return blob
 }
+
+type SavePassageRequest = {
+  title: string
+  content: string
+  level: string
+}
+
+export const savePassage = async (request: SavePassageRequest) => {
+  await http.post('/save-passage', request)
+}

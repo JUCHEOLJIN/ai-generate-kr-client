@@ -1,4 +1,5 @@
 import { http } from '@/shared/utils/http'
+import { savePassage } from '@/entities/problem/api/fetchers'
 import { useState, useRef } from 'react'
 
 interface ExtractResponse {
@@ -12,6 +13,12 @@ const ImageToText = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 저장 모달 관련 상태
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [saveTitle, setSaveTitle] = useState('')
+  const [saveLevel, setSaveLevel] = useState('중1')
+  const [saving, setSaving] = useState(false)
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -64,6 +71,43 @@ const ImageToText = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
+  }
+
+  const handleSave = () => {
+    setShowSaveModal(true)
+  }
+
+  const handleSaveConfirm = async () => {
+    if (!saveTitle.trim()) {
+      setError('제목을 입력해주세요.')
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+
+    try {
+      await savePassage({
+        title: saveTitle,
+        content: extractedText,
+        level: saveLevel,
+      })
+      setShowSaveModal(false)
+      setSaveTitle('')
+      setSaveLevel('중1')
+      alert('지문이 저장되었습니다!')
+    } catch (err) {
+      console.error('Save Error:', err)
+      setError(`저장 실패: ${(err as Error).message}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setShowSaveModal(false)
+    setSaveTitle('')
+    setSaveLevel('중1')
   }
 
   return (
@@ -139,7 +183,16 @@ const ImageToText = () => {
 
         {/* 오른쪽: 추출된 텍스트 영역 */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-gray-800">추출된 텍스트</h2>
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 justify-between">
+            추출된 텍스트
+            <button
+              onClick={handleSave}
+              disabled={saving || !extractedText.trim()}
+              className="px-2 py-2 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-300 cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              지문 저장
+            </button>
+          </h2>
 
           <textarea
             value={extractedText}
@@ -171,6 +224,79 @@ const ImageToText = () => {
       {error && (
         <div className="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg font-medium">
           {error}
+        </div>
+      )}
+
+      {/* 저장 모달 */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">지문 저장</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">제목</label>
+                <input
+                  type="text"
+                  value={saveTitle}
+                  onChange={(e) => setSaveTitle(e.target.value)}
+                  placeholder="지문 제목을 입력하세요"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">대상 학년</label>
+                <div className="relative w-full">
+                  <select
+                    value={saveLevel}
+                    onChange={(e) => setSaveLevel(e.target.value)}
+                    className="block w-full px-4 py-3 pr-10 text-base border-1 border-gray-300 focus:outline-none sm:text-sm rounded-xl bg-white font-medium appearance-none cursor-pointer"
+                  >
+                    <optgroup label="중학교">
+                      <option value="중1">중학교 1학년</option>
+                      <option value="중2">중학교 2학년</option>
+                      <option value="중3">중학교 3학년</option>
+                    </optgroup>
+                    <optgroup label="고등학교">
+                      <option value="고1">고등학교 1학년</option>
+                      <option value="고2">고등학교 2학년</option>
+                      <option value="고3">고등학교 3학년</option>
+                    </optgroup>
+                  </select>
+                  <svg
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleCloseModal}
+                className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition duration-300 cursor-pointer"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSaveConfirm}
+                disabled={saving}
+                className="flex-1 py-2 px-4 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition duration-300 disabled:bg-indigo-400 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
