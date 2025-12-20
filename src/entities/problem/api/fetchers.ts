@@ -35,3 +35,15 @@ type SavePassageRequest = {
 export const savePassage = async (request: SavePassageRequest) => {
   await http.post('/save-passage', request)
 }
+
+export type Passage = {
+  title: string
+  content: string
+  level: string
+  timestamp?: string
+}
+
+export const getPassages = async (): Promise<Passage[]> => {
+  const response = await http.get<Passage[]>('/passages')
+  return response
+}

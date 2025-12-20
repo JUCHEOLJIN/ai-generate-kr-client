@@ -1,7 +1,12 @@
-import { downloadDocument, generateProblems } from '@/entities/problem/api/fetchers'
+import {
+  downloadDocument,
+  generateProblems,
+  getPassages,
+  type Passage,
+} from '@/entities/problem/api/fetchers'
 import type { Problem } from '@/entities/problem/type'
 import { ProblemCard } from '@/shared/components/ProblemCard'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const GenerateProblem = () => {
   const [passage, setPassage] = useState('')
@@ -11,6 +16,48 @@ const GenerateProblem = () => {
   const [downloadLoading, setDownloadLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [level, setLevel] = useState('중1')
+
+  // 지문 리스트 모달 관련 상태
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [passages, setPassages] = useState<Passage[]>([])
+  const [passagesLoading, setPassagesLoading] = useState(false)
+  const [passagesError, setPassagesError] = useState<string | null>(null)
+
+  // 모달 열 때 지문 목록 불러오기
+  const handleOpenModal = async () => {
+    setIsModalOpen(true)
+    setPassagesLoading(true)
+    setPassagesError(null)
+
+    try {
+      const data = await getPassages()
+      setPassages(data)
+    } catch (err) {
+      console.error('지문 목록 불러오기 실패:', err)
+      setPassagesError('지문 목록을 불러오는데 실패했습니다.')
+    } finally {
+      setPassagesLoading(false)
+    }
+  }
+
+  // 지문 선택 시 textarea에 적용
+  const handleSelectPassage = (selectedPassage: Passage) => {
+    console.log(selectedPassage)
+    setPassage(selectedPassage.content)
+    setLevel(selectedPassage.level || '중1')
+    setIsModalOpen(false)
+  }
+
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) {
+        setIsModalOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isModalOpen])
 
   const handleSubmit = async () => {
     if (passage.trim() === '') {
@@ -119,6 +166,26 @@ const GenerateProblem = () => {
           {downloadLoading ? '다운로드 중...' : '문제 다운로드'}
         </button>
       </div>
+
+      {/* 저장된 지문 불러오기 버튼 */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={handleOpenModal}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition duration-300 cursor-pointer"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 10h16M4 14h16M4 18h16"
+            />
+          </svg>
+          저장된 지문 불러오기
+        </button>
+      </div>
+
       <textarea
         className="w-full p-4 border-2 border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-base mb-6 resize-y"
         rows={12}
@@ -160,6 +227,90 @@ const GenerateProblem = () => {
           {problems.map((p, index) => (
             <ProblemCard key={index} problem={p} index={index} />
           ))}
+        </div>
+      )}
+
+      {/* 지문 리스트 모달 */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 모달 헤더 */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800">저장된 지문 목록</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* 모달 바디 */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {passagesLoading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+                  <span className="ml-3 text-gray-600">지문 목록을 불러오는 중...</span>
+                </div>
+              )}
+
+              {passagesError && (
+                <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                  {passagesError}
+                </div>
+              )}
+
+              {!passagesLoading && !passagesError && passages.length === 0 && (
+                <div className="text-center py-12 text-gray-500">저장된 지문이 없습니다.</div>
+              )}
+
+              {!passagesLoading && !passagesError && passages.length > 0 && (
+                <div className="space-y-3">
+                  {passages.map((p, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleSelectPassage(p)}
+                      className="p-4 border border-gray-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 cursor-pointer transition group"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-800 group-hover:text-indigo-700">
+                          {p.title || '제목 없음'}
+                        </h3>
+                        <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                          {p.level || '미지정'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-3">
+                        {p.content?.slice(0, 150)}
+                        {p.content && p.content.length > 150 && '...'}
+                      </p>
+                      {p.timestamp && <p className="mt-2 text-xs text-gray-400">{p.timestamp}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 모달 푸터 */}
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+              <p className="text-sm text-gray-500 text-center">
+                지문을 클릭하면 자동으로 입력됩니다. (ESC로 닫기)
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
